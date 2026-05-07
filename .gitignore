@@ -1,0 +1,19 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+*.code-workspace.tmp
+
+# Logs and local scratch files
+*.log
+*.tmp
+*.bak
+
+*.docx
+*.pdf
+resume/*.docx
+resume/*.pdf
+!resume/README.md
