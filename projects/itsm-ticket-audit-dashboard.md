@@ -1,17 +1,7 @@
 # ITSM Ticket Audit Dashboard
 
-## Overview
+This project has been expanded into a public-safe folder with recreated documentation, dashboard planning, and mock ticket audit data.
 
-A portfolio project concept for reviewing ITSM ticket patterns and documentation quality.
+View the current project brief: [projects/itsm-ticket-audit-dashboard/README.md](itsm-ticket-audit-dashboard/README.md)
 
-## Purpose
-
-This project is meant to demonstrate ITSM analysis, ticket review structure, and process improvement thinking.
-
-## Status
-
-In Progress.
-
-## Data Note
-
-Project examples use mock, sanitized, or recreated information.
+Project examples use mock, sanitized, or recreated information only. No confidential employer data, patient data, internal tickets, proprietary screenshots, or private system exports are included.

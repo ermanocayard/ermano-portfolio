@@ -1,0 +1,47 @@
+[
+  {
+    "group": "Systems & Identity",
+    "items": [
+      "Active Directory support within delegated scope",
+      "Microsoft Entra ID and MFA support",
+      "Endpoint lifecycle and workstation-account awareness",
+      "Access request coordination and handoff clarity"
+    ]
+  },
+  {
+    "group": "ITSM",
+    "items": [
+      "Incident and service request documentation",
+      "Escalation notes and queue handoffs",
+      "Ticket quality review and workflow analysis",
+      "Knowledge base and support-process improvement"
+    ]
+  },
+  {
+    "group": "AI / Knowledge Governance",
+    "items": [
+      "Governance-first AI adoption framing",
+      "Knowledge taxonomy and content-control thinking",
+      "Public-safe case study development",
+      "Risk, ownership, and review-path awareness"
+    ]
+  },
+  {
+    "group": "Automation",
+    "items": [
+      "Python and PowerShell utility work",
+      "Git and GitHub workflow discipline",
+      "Metadata audits and report generation",
+      "API integration awareness from project work"
+    ]
+  },
+  {
+    "group": "Current Study",
+    "items": [
+      "C# and code-reading practice",
+      "Computer science foundations",
+      "SQL and PostgreSQL practice",
+      "ServiceNow administration path"
+    ]
+  }
+]

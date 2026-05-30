@@ -1,0 +1,32 @@
+[
+  {
+    "id": "sample-systems-workflow",
+    "title": "Sample: Systems Workflow Case Study",
+    "tagline": "Placeholder slot for a future public-safe systems case study.",
+    "tags": ["Sample", "Systems thinking", "Governance"],
+    "year": "TBD",
+    "status": "Placeholder",
+    "summary": "Sample card for testing the data model and layout. Real case study content will be added after private review and exposure cleanup.",
+    "case_study_path": "",
+    "links": {
+      "repo": "",
+      "live": ""
+    },
+    "featured": true
+  },
+  {
+    "id": "sample-ai-operations",
+    "title": "Sample: AI Operations Case Study",
+    "tagline": "Placeholder slot for a future AI or knowledge-governance story.",
+    "tags": ["Sample", "AI operations", "Knowledge systems"],
+    "year": "TBD",
+    "status": "Placeholder",
+    "summary": "Sample card for a reviewed, genericized case study that can be added later.",
+    "case_study_path": "",
+    "links": {
+      "repo": "",
+      "live": ""
+    },
+    "featured": false
+  }
+]
