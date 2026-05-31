@@ -25,7 +25,7 @@ Because the page fetches local JSON files, use a small static server instead of 
 Example:
 
 ```powershell
-cd C:\dev\ermano-portfolio
+cd path\to\ermano-portfolio
 python -m http.server 8080
 ```
 
@@ -37,6 +37,6 @@ http://localhost:8080
 
 ## Public Content Rules
 
-- Do not publish phone numbers, PHI, employer-internal system names, or private notes.
+- Do not publish phone numbers, patient data, employer-internal system names, or private notes.
 - Keep resume exports ignored unless a deliberate public-safe version is created.
 - Keep draft material in the private Career OS repo until it has been reviewed and cleared.

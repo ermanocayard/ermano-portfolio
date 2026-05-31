@@ -27,6 +27,3 @@ _private/
 private/
 raw-data/
 source-data/
-
-# Allow only the public mock-data CSV for the ITSM project
-!projects/itsm-ticket-audit-dashboard/mock-data/*.csv

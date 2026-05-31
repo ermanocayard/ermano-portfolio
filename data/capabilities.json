@@ -1,47 +1,95 @@
 [
   {
-    "group": "Systems & Identity",
+    "domain": "Identity & Access",
     "items": [
-      "Active Directory support within delegated scope",
-      "Microsoft Entra ID and MFA support",
-      "Endpoint lifecycle and workstation-account awareness",
-      "Access request coordination and handoff clarity"
+      {
+        "name": "Active Directory",
+        "detail": "Hands-on support within a delegated enterprise environment, including workstation OU management, security group administration, scoped permission changes, and workstation account enable/disable operations."
+      },
+      {
+        "name": "Microsoft Entra ID",
+        "detail": "Supported identity and access workflows including MFA method management, authentication recovery, user verification, and access troubleshooting in Microsoft 365 environments."
+      },
+      {
+        "name": "MFA & Authentication",
+        "detail": "Troubleshot and supported multi-factor authentication workflows across Entra ID, Duo, and PingID environments, including enrollment, recovery, and account access restoration."
+      }
     ]
   },
   {
-    "group": "ITSM",
+    "domain": "ITSM & Service Operations",
     "items": [
-      "Incident and service request documentation",
-      "Escalation notes and queue handoffs",
-      "Ticket quality review and workflow analysis",
-      "Knowledge base and support-process improvement"
+      {
+        "name": "Ivanti Neurons ITSM",
+        "detail": "Managed daily incident and service-request operations within an enterprise healthcare environment, including ticket documentation, escalation coordination, workflow analysis, saved searches, and activity-history review."
+      },
+      {
+        "name": "Incident Management",
+        "detail": "Handled escalated support issues across multiple technical domains, coordinating ownership, documenting user impact, and routing incidents to the appropriate infrastructure, application, or operational teams."
+      },
+      {
+        "name": "Operational Analysis & RCA Support",
+        "detail": "Identified recurring issue patterns, documented operational findings, and gathered cross-team troubleshooting context to support process improvement and root-cause analysis efforts."
+      }
     ]
   },
   {
-    "group": "AI / Knowledge Governance",
+    "domain": "Endpoint & Clinical Systems",
     "items": [
-      "Governance-first AI adoption framing",
-      "Knowledge taxonomy and content-control thinking",
-      "Public-safe case study development",
-      "Risk, ownership, and review-path awareness"
+      {
+        "name": "Citrix / VDI",
+        "detail": "Supported enterprise Citrix environments including login/session troubleshooting, static virtual desktops, profile-related issues, endpoint redirection, and Workspace client support."
+      },
+      {
+        "name": "Epic",
+        "detail": "Supported Epic-connected workflows in a healthcare environment, including workstation access issues, printing dependencies, peripheral integration, and endpoint troubleshooting tied to clinical operations."
+      },
+      {
+        "name": "Microsoft 365",
+        "detail": "Troubleshot Outlook, Teams, Office applications, OWA, OneDrive, mailbox access issues, and general Microsoft 365 client-side support across enterprise support roles."
+      },
+      {
+        "name": "Cisco VPN",
+        "detail": "Supported remote-access troubleshooting for VPN-connected users, including authentication issues, connectivity failures, and virtual desktop access workflows."
+      }
     ]
   },
   {
-    "group": "Automation",
+    "domain": "Cloud, Knowledge & Collaboration",
     "items": [
-      "Python and PowerShell utility work",
-      "Git and GitHub workflow discipline",
-      "Metadata audits and report generation",
-      "API integration awareness from project work"
+      {
+        "name": "Supabase / PostgreSQL",
+        "detail": "Used in self-directed platform development for relational schema design, hosted database structure, and backend data modeling within modern web application workflows."
+      },
+      {
+        "name": "SharePoint",
+        "detail": "Worked with SharePoint-based knowledge organization, structured documentation systems, collaborative content management, and governed information architecture workflows."
+      },
+      {
+        "name": "Microsoft Power Platform",
+        "detail": "Explored workflow automation, knowledge-management concepts, and operational process design within the Microsoft 365 ecosystem using Power Platform tooling."
+      }
     ]
   },
   {
-    "group": "Current Study",
+    "domain": "Automation & Development",
     "items": [
-      "C# and code-reading practice",
-      "Computer science foundations",
-      "SQL and PostgreSQL practice",
-      "ServiceNow administration path"
+      {
+        "name": "Git / GitHub",
+        "detail": "Used Git and GitHub for version control, repository management, GitHub Pages deployment, and maintaining structured project history across personal and technical portfolio projects."
+      },
+      {
+        "name": "Python",
+        "detail": "Used Python for utility scripting, workflow tooling, automation experiments, and self-directed systems-oriented project development."
+      },
+      {
+        "name": "PowerShell",
+        "detail": "Used PowerShell for Windows administration tasks, utility scripting, local system inspection, and operational troubleshooting workflows."
+      },
+      {
+        "name": ".NET / C#",
+        "detail": "Designed and built a self-directed multi-component platform architecture involving APIs, worker services, desktop UI concepts, and integration layers, with implementation supported through AI-assisted C# development."
+      }
     ]
   }
 ]

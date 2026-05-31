@@ -1,32 +1,79 @@
 [
   {
-    "id": "sample-systems-workflow",
-    "title": "Sample: Systems Workflow Case Study",
-    "tagline": "Placeholder slot for a future public-safe systems case study.",
-    "tags": ["Sample", "Systems thinking", "Governance"],
-    "year": "TBD",
-    "status": "Placeholder",
-    "summary": "Sample card for testing the data model and layout. Real case study content will be added after private review and exposure cleanup.",
-    "case_study_path": "",
-    "links": {
-      "repo": "",
-      "live": ""
-    },
-    "featured": true
+    "id": "mgf-production-ecosystem",
+    "title": "MGF Production Development Ecosystem",
+    "context_label": "Self-Directed / Creative Operations Platform",
+    "tagline": "Designed a .NET-based internal platform for managing creative project workflows, delivery operations, storage provisioning, email flows, and operational tooling.",
+    "tags": [".NET", "C#", "Systems design", "API", "Worker services", "WPF", "Postgres", "Workflow automation"],
+    "year": "2026",
+    "featured": true,
+    "detail": {
+      "summary": "MGF is a self-directed production operations platform built around structured project workflows, delivery, storage-integrated operations, and internal tooling. The repository is organized as a multi-project .NET solution with documented architecture boundaries, use-case separation, API and worker hosts, operations CLIs, data access, integrations, and WPF-based developer tooling.",
+      "sections": [
+        {
+          "heading": "Problem",
+          "body": "A creative services workflow can quickly become scattered across client conversations, project folders, delivery links, email drafts, storage locations, and manual follow-up tasks. I wanted to design a system that treats creative production like an operational workflow instead of a loose collection of files and messages."
+        },
+        {
+          "heading": "Approach",
+          "body": "I structured the platform around clear architectural buckets: API and worker services, application use cases, contracts, data access, provider integrations, platform utilities, operations CLIs, and UI tooling. The system separates workflow orchestration from persistence and vendor-specific IO so the platform can grow without turning into one large, tangled application."
+        },
+        {
+          "heading": "What I Built",
+          "body": "The repo includes an internal API host, background worker dispatcher, project bootstrap and provisioning CLIs, a data migrator, shared data access, email composition and provider integrations, storage and folder-provisioning utilities, Dropbox and Square integration boundaries, and WPF desktop tooling for development/operations visibility."
+        },
+        {
+          "heading": "Engineering Decisions",
+          "body": "I emphasized maintainability through documented project boundaries, dependency direction, use-case-centered workflow rules, dev safety rails, workflow locks for shared storage mutations, preview-email defaults, and runbooks for repeatable local verification. The repository also includes documentation standards and architecture references so the system can be understood beyond the code alone."
+        },
+        {
+          "heading": "My Involvement",
+          "body": "I owned the product direction, workflow modeling, architecture decisions, documentation structure, and system design. AI assisted with parts of C# implementation and iteration speed, but the platform concept, operational model, boundaries, and design intent were mine."
+        },
+        {
+          "heading": "Value",
+          "body": "This project demonstrates my ability to translate a real operational problem into a structured software platform: modeling workflows, separating concerns, documenting system boundaries, thinking through reliability, and building tooling that supports repeatable work instead of one-off manual effort."
+        }
+      ]
+    }
   },
+
   {
-    "id": "sample-ai-operations",
-    "title": "Sample: AI Operations Case Study",
-    "tagline": "Placeholder slot for a future AI or knowledge-governance story.",
-    "tags": ["Sample", "AI operations", "Knowledge systems"],
-    "year": "TBD",
-    "status": "Placeholder",
-    "summary": "Sample card for a reviewed, genericized case study that can be added later.",
-    "case_study_path": "",
-    "links": {
-      "repo": "",
-      "live": ""
-    },
-    "featured": false
+  "id": "healthcare-ai-knowledge-governance",
+  "title": "Healthcare AI Knowledge Governance Pilot",
+  "context_label": "Professional / Healthcare IT",
+  "tagline": "Designed a governed knowledge framework for an AI-enabled Service Desk assistant in a healthcare IT environment.",
+  "tags": ["AI governance", "Knowledge management", "ITSM", "Service Desk", "Healthcare IT", "SharePoint", "Copilot"],
+  "year": "2026",
+  "featured": true,
+  "detail": {
+    "summary": "This initiative focused on preparing a healthcare IT Service Desk for AI-assisted knowledge retrieval by designing the governance, documentation standards, taxonomy, lifecycle, and pilot structure needed before deploying an internal assistant.",
+    "sections": [
+      {
+        "heading": "Problem",
+        "body": "The Service Desk relied on scattered, inconsistent, and sometimes outdated knowledge spread across ticketing systems, shared drives, individual teams, and undocumented tribal knowledge. Before an AI assistant could be trusted, the organization needed a governed way to identify, structure, validate, maintain, and expose support knowledge."
+      },
+      {
+        "heading": "Approach",
+        "body": "I helped define a Service Desk-focused knowledge architecture with clear documentation families, reusable templates, metadata expectations, domain ownership, and review lifecycle concepts. The goal was to make knowledge usable by both humans and AI without depending on unverified or stale source material."
+      },
+      {
+        "heading": "What I Designed",
+        "body": "The framework included first-wave documentation templates for overview, troubleshooting, implementation, and procedure content; a proposed SharePoint-based knowledge structure; a domain-captain review model; a knowledge lifecycle from draft to review to approved publication; and pilot guardrails around blast radius, feedback collection, cost awareness, and governance."
+      },
+      {
+        "heading": "Leadership Involvement",
+        "body": "I presented the AI pilot concept and governance direction to IT leadership, including executive stakeholders, as part of a broader discussion around how AI could improve Service Desk operations, escalation accuracy, knowledge access, and first-contact resolution."
+      },
+      {
+        "heading": "My Involvement",
+        "body": "I contributed the core systems thinking behind the pilot: identifying that the AI tool itself was only a small part of the work, while the larger challenge was knowledge quality, ownership, lifecycle, governance, and operational adoption. I helped translate that into templates, planning documents, meeting agendas, stakeholder questions, and implementation direction."
+      },
+      {
+        "heading": "Value",
+        "body": "This work demonstrates my ability to think beyond front-line support and design operational systems: identifying knowledge gaps, reducing risk before automation, creating governance structures, aligning stakeholders, and framing AI as an operational layer rather than a standalone tool."
+      }
+    ]
   }
+}
 ]

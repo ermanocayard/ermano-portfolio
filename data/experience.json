@@ -3,30 +3,32 @@
     "company": "Tallahassee Memorial HealthCare",
     "title": "Desktop Support Technician II",
     "dates": "Current",
-    "bullets": [
-      "Support endpoint, access, peripheral, and clinical-device workflows in a healthcare IT environment.",
-      "Coordinate escalations across support teams with clear ticket documentation and handoff context.",
-      "Contribute to knowledge-organization and AI-governance discussions using public-safe, genericized framing."
+    "lines": [
+      "Provide Tier 2 desktop and operational support within a large healthcare environment supporting endpoint systems, access workflows, clinical peripherals, and Epic-connected device operations.",
+      "Coordinate escalations across infrastructure, application, and operational teams while maintaining detailed troubleshooting and ticket documentation.",
+      "Support Microsoft 365, Citrix VDI, Epic-connected workflows, identity systems, VPN access, and enterprise endpoint operations across multiple departments and locations.",
+      "Contribute to workflow standardization, knowledge organization, and AI-governance discussions surrounding enterprise support operations."
     ]
   },
   {
     "company": "Centurion Health",
     "title": "Technical Support Specialist",
     "dates": "Prior",
-    "bullets": [
-      "Handled service desk support for distributed healthcare operations across multiple locations.",
-      "Documented incidents, service requests, account-support work, and escalation details in an ITSM environment.",
-      "Supported identity, access, endpoint, phone, printer, and remote-access troubleshooting within assigned scope."
+    "lines": [
+      "Delivered service desk support for distributed healthcare operations across multiple facilities and remote environments.",
+      "Supported account access, endpoint troubleshooting, printers, phones, VPN connectivity, and operational incidents within an ITSM-driven support structure.",
+      "Documented incidents, escalation details, and troubleshooting workflows while coordinating with internal support teams and healthcare staff.",
+      "Developed strong operational troubleshooting habits, escalation discipline, and user-facing technical communication in a high-volume support environment."
     ]
   },
   {
     "company": "Alorica",
     "title": "Technical Support Analyst",
     "dates": "Prior",
-    "bullets": [
-      "Provided remote technical support in a queue-based service desk environment.",
-      "Troubleshot virtual desktop, VPN, authentication, and application-access issues for end users.",
-      "Built practical habits around documentation, user communication, and repeatable support workflows."
+    "lines": [
+      "Provided queue-based remote technical support for users experiencing authentication, VPN, virtual desktop, and application-access issues.",
+      "Troubleshot software, connectivity, and endpoint-related problems while guiding users through structured support workflows.",
+      "Built foundational experience in incident handling, remote troubleshooting, technical communication, and support documentation within a fast-paced service environment."
     ]
   }
 ]

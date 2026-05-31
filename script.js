@@ -65,7 +65,7 @@ const createLink = ({ label, href, type, user, domain }) => {
 };
 
 const fetchJson = async (path) => {
-  const response = await fetch(path);
+  const response = await fetch(path, { cache: "no-store" });
 
   if (!response.ok) {
     throw new Error(`Unable to load ${path}`);
@@ -81,10 +81,16 @@ const renderHero = (profile) => {
   container.replaceChildren();
 
   const copy = createElement("div", "hero-copy");
-  appendText(copy, "p", "eyebrow", "Systems / AI Operations / Platform Direction");
+  appendText(copy, "p", "eyebrow", profile.eyebrow);
   appendText(copy, "h1", null, profile.name);
   appendText(copy, "p", "identity-line", profile.identity);
   appendText(copy, "p", "hero-summary", profile.summary);
+
+  if (profile.skill_strip?.length) {
+    const skillStrip = createElement("ul", "hero-skill-strip");
+    profile.skill_strip.forEach((skill) => appendText(skillStrip, "li", null, skill));
+    copy.appendChild(skillStrip);
+  }
 
   const linkRow = createElement("div", "link-row");
   profile.contact.forEach((contact) => {
@@ -94,22 +100,20 @@ const renderHero = (profile) => {
 
   appendText(copy, "p", "muted-note hero-note", profile.resume_note);
 
-  container.appendChild(copy);
-};
+  const photo = createElement("figure", "hero-photo");
 
-const renderApproach = (profile) => {
-  const container = document.querySelector("#approach-content");
-  if (!container) return;
+  if (profile.photo?.src) {
+    const image = createElement("img");
+    image.src = profile.photo.src;
+    image.alt = profile.photo.alt || "";
+    photo.appendChild(image);
+  } else {
+    const fallback = createElement("div", "hero-photo-fallback");
+    appendText(fallback, "span", null, "EDC");
+    photo.appendChild(fallback);
+  }
 
-  container.replaceChildren();
-
-  profile.approach.forEach((principle) => {
-    const card = createElement("article", "principle-card");
-    appendText(card, "span", "card-index", principle.id);
-    appendText(card, "h3", null, principle.title);
-    appendText(card, "p", null, principle.body);
-    container.appendChild(card);
-  });
+  container.append(copy, photo);
 };
 
 const renderProjects = (projects) => {
@@ -118,37 +122,80 @@ const renderProjects = (projects) => {
 
   container.replaceChildren();
 
-  projects.forEach((project) => {
+  const orderedProjects = [...projects].sort((a, b) => Number(b.featured) - Number(a.featured));
+
+  orderedProjects.forEach((project) => {
+    const detailId = `project-detail-${project.id}`;
     const card = createElement("article", project.featured ? "project-card featured" : "project-card");
-    appendText(card, "p", "status", `${project.status} / ${project.year}`);
-    appendText(card, "h3", null, project.title);
-    appendText(card, "p", "tagline", project.tagline);
-    appendText(card, "p", null, project.summary);
 
-    const tags = createElement("ul", "tag-list");
-    project.tags.forEach((tag) => appendText(tags, "li", null, tag));
-    card.appendChild(tags);
+    const toggle = createElement("button", "project-toggle");
+    toggle.type = "button";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-controls", detailId);
 
-    const actions = createElement("div", "project-actions");
+    const meta = createElement("div", "project-meta");
+    appendText(meta, "span", "project-context", project.context_label);
+    appendText(meta, "span", "project-year", project.year);
 
-    if (project.case_study_path) {
-      actions.appendChild(
-        createLink({
-          label: "Case study",
-          href: project.case_study_path,
-          type: "internal",
-        })
-      );
-    } else {
-      appendText(actions, "span", "muted-note", "Case study pending review");
+    appendText(toggle, "span", "project-title", project.title);
+    appendText(toggle, "span", "tagline", project.tagline);
+
+    const tags = createElement("span", "tag-list");
+    tags.setAttribute("role", "list");
+    project.tags.forEach((tag) => {
+      const tagElement = appendText(tags, "span", null, tag);
+      tagElement.setAttribute("role", "listitem");
+    });
+    tags.setAttribute("aria-label", "Project tags");
+
+    const cue = createElement("span", "expand-cue", "Expand");
+
+    toggle.prepend(meta);
+    toggle.append(tags, cue);
+
+    const detail = createElement("div", "project-detail");
+    detail.id = detailId;
+    detail.setAttribute("aria-hidden", "true");
+
+    const detailInner = createElement("div", "project-detail-inner");
+
+    if (project.detail?.summary) {
+      appendText(detailInner, "p", "project-summary", project.detail.summary);
     }
 
-    Object.entries(project.links || {}).forEach(([label, href]) => {
-      if (!href) return;
-      actions.appendChild(createLink({ label, href, type: "external" }));
+    project.detail?.sections?.forEach((section) => {
+      const block = createElement("section", "detail-section");
+      appendText(block, "h4", null, section.heading);
+      appendText(block, "p", null, section.body);
+      detailInner.appendChild(block);
     });
 
-    card.appendChild(actions);
+    if (project.detail?.links?.length) {
+      const links = createElement("div", "detail-links");
+      project.detail.links.forEach((link) => {
+        if (!link.url) return;
+        links.appendChild(
+          createLink({
+            label: link.label,
+            href: link.url,
+            type: link.url.startsWith("http") ? "external" : "internal",
+          })
+        );
+      });
+      detailInner.appendChild(links);
+    }
+
+    detail.appendChild(detailInner);
+
+    toggle.addEventListener("click", () => {
+      const isExpanded = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!isExpanded));
+      detail.setAttribute("aria-hidden", String(isExpanded));
+      cue.textContent = isExpanded ? "Expand" : "Collapse";
+      card.classList.toggle("is-expanded", !isExpanded);
+    });
+
+    card.append(toggle, detail);
     container.appendChild(card);
   });
 };
@@ -159,16 +206,66 @@ const renderExperience = (roles) => {
 
   container.replaceChildren();
 
-  roles.forEach((role) => {
+  roles.forEach((role, index) => {
+    const detailId = `experience-detail-${index}`;
     const item = createElement("article", "timeline-item");
-    const header = createElement("div", "timeline-heading");
-    appendText(header, "h3", null, role.company);
-    appendText(header, "p", "role", `${role.title} / ${role.dates}`);
 
-    const bullets = createElement("ul", null);
-    role.bullets.forEach((bullet) => appendText(bullets, "li", null, bullet));
+    const marker = createElement("span", "timeline-marker");
+    marker.setAttribute("aria-hidden", "true");
 
-    item.append(header, bullets);
+    const toggle = createElement("button", "timeline-toggle");
+    toggle.type = "button";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-controls", detailId);
+    appendText(toggle, "span", "timeline-company", role.company);
+    appendText(toggle, "span", "timeline-role", role.title);
+    appendText(toggle, "span", "timeline-date", role.dates);
+
+    const detail = createElement("div", "timeline-detail");
+    detail.id = detailId;
+    detail.setAttribute("aria-hidden", "true");
+
+    const lines = createElement("div", "timeline-lines");
+    role.lines.forEach((line) => appendText(lines, "p", null, line));
+    detail.appendChild(lines);
+
+    let pinnedOpen = false;
+
+    const setExpanded = (expanded) => {
+      item.classList.toggle("is-expanded", expanded);
+      toggle.setAttribute("aria-expanded", String(expanded));
+      detail.setAttribute("aria-hidden", String(!expanded));
+    };
+
+    toggle.addEventListener("click", () => {
+      pinnedOpen = !pinnedOpen;
+      setExpanded(pinnedOpen);
+    });
+
+    item.addEventListener("mouseenter", () => {
+      if (!pinnedOpen) {
+        setExpanded(true);
+      }
+    });
+    item.addEventListener("mouseleave", () => {
+      if (!pinnedOpen && !item.matches(":focus-within")) {
+        setExpanded(false);
+      }
+    });
+    item.addEventListener("focusin", () => {
+      if (!pinnedOpen) {
+        setExpanded(true);
+      }
+    });
+    item.addEventListener("focusout", () => {
+      window.setTimeout(() => {
+        if (!pinnedOpen && !item.matches(":hover, :focus-within")) {
+          setExpanded(false);
+        }
+      }, 0);
+    });
+
+    item.append(marker, toggle, detail);
     container.appendChild(item);
   });
 };
@@ -180,14 +277,25 @@ const renderCapabilities = (groups) => {
   container.replaceChildren();
 
   groups.forEach((group) => {
-    const card = createElement("section", "capability-card");
-    appendText(card, "h3", null, group.group);
+    const section = createElement("section", "capability-domain");
+    appendText(section, "h3", null, group.domain);
 
-    const list = createElement("ul", null);
-    group.items.forEach((item) => appendText(list, "li", null, item));
+    const list = createElement("div", "tool-sea");
+    list.setAttribute("role", "list");
 
-    card.appendChild(list);
-    container.appendChild(card);
+    group.items.forEach((item) => {
+      const tool = createElement("div", "tool-item");
+      tool.setAttribute("role", "listitem");
+
+      appendText(tool, "span", "tool-name", item.name);
+      const detail = createElement("p", "tool-detail", item.detail);
+
+      tool.appendChild(detail);
+      list.appendChild(tool);
+    });
+
+    section.appendChild(list);
+    container.appendChild(section);
   });
 };
 
@@ -229,7 +337,6 @@ const renderSite = async () => {
     ]);
 
     renderHero(profile);
-    renderApproach(profile);
     renderProjects(projects);
     renderExperience(experience);
     renderCapabilities(capabilities);

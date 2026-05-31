@@ -1,25 +1,14 @@
 {
   "name": "Ermano D. Cayard",
-  "identity": "Systems-minded IT professional applying governance, operational awareness, and maintainable architecture to support, automation, and AI-enabled knowledge work.",
-  "summary": "I turn operational friction into structured workflows, documentation, and public-safe systems evidence. My work centers on maintainability, blast-radius awareness, and practical governance.",
+  "eyebrow": "INCIDENT & PROBLEM ANALYSIS · ITSM · IDENTITY & ACCESS · AUTOMATION",
+  "identity": "I run point on major incidents, trace root causes, and turn recurring operational problems into documented, repeatable systems.",
+  "summary": "Over five years in IT support, much of it in healthcare — working across incident and problem management, identity and access, and the cross-team coordination that keeps complex environments stable.",
+  "skill_strip": ["AI / knowledge governance", "ITSM", "Identity & access", "Automation"],
+  "photo": {
+    "src": "assets/images/headshot_pfp.webp",
+    "alt": "Portrait of Ermano D. Cayard"
+  },
   "resume_note": "Resume available on request.",
-  "approach": [
-    {
-      "id": "01",
-      "title": "Governance first",
-      "body": "Tools only help when the ownership, review path, and operating rules are clear. I look for the control model before the feature list."
-    },
-    {
-      "id": "02",
-      "title": "Build for change",
-      "body": "A useful system should survive the next requirement. I prefer small, stable structures that can absorb change without becoming fragile."
-    },
-    {
-      "id": "03",
-      "title": "Know the blast radius",
-      "body": "Before changing a workflow, I ask what can break, who is affected, and how to contain the risk. Quiet systems are designed to fail smaller."
-    }
-  ],
   "contact": [
     {
       "label": "LinkedIn",
