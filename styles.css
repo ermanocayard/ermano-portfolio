@@ -481,24 +481,27 @@ p {
 }
 
 .project-detail {
-  max-height: 0;
+  display: grid;
+  grid-template-rows: 0fr;
   overflow: hidden;
   opacity: 0;
   border-top: 1px solid transparent;
   transition:
-    max-height 520ms ease,
+    grid-template-rows 520ms ease,
     opacity 360ms ease,
     border-color 360ms ease;
 }
 
 .project-card.is-expanded .project-detail {
-  max-height: 72rem;
+  grid-template-rows: 1fr;
   opacity: 1;
   border-top-color: var(--line);
 }
 
 .project-detail-inner {
   max-width: 880px;
+  min-height: 0;
+  overflow: hidden;
   padding: 0 clamp(1.25rem, 3vw, 2.2rem) clamp(1.25rem, 3vw, 2.2rem);
 }
 
