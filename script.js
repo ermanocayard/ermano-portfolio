@@ -154,6 +154,96 @@ const scrollProjectCardIntoView = (card, top = getProjectCardTop(card)) => {
   });
 };
 
+const setupPointerField = () => {
+  const canUsePointerEffects = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (!canUsePointerEffects || prefersReducedMotion) return;
+
+  const root = document.documentElement;
+  const glow = createElement("div", "pointer-glow");
+  glow.setAttribute("aria-hidden", "true");
+  document.body.appendChild(glow);
+  document.body.classList.add("pointer-field-enabled");
+
+  const reactiveElements = Array.from(
+    document.querySelectorAll(
+      ".hero-photo, .project-card, .tool-item, .timeline-item, .link-row .text-link, .contact-links .text-link"
+    )
+  );
+
+  reactiveElements.forEach((element) => element.classList.add("motion-reactive"));
+
+  let pointerX = window.innerWidth / 2;
+  let pointerY = window.innerHeight / 2;
+  let pendingFrame = false;
+
+  const resetElement = (element) => {
+    element.style.setProperty("--float-x", "0px");
+    element.style.setProperty("--float-y", "0px");
+    element.style.setProperty("--field-glow-alpha", "0");
+  };
+
+  const updatePointerField = () => {
+    root.style.setProperty("--cursor-x", `${pointerX}px`);
+    root.style.setProperty("--cursor-y", `${pointerY}px`);
+    root.style.setProperty("--field-drift-x", `${((pointerX / window.innerWidth) - 0.5) * -9}px`);
+    root.style.setProperty("--field-drift-y", `${((pointerY / window.innerHeight) - 0.5) * -7}px`);
+
+    reactiveElements.forEach((element) => {
+      if (!element.isConnected || element.classList.contains("is-expanded")) {
+        resetElement(element);
+        return;
+      }
+
+      const rect = element.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const dx = centerX - pointerX;
+      const dy = centerY - pointerY;
+      const distance = Math.hypot(dx, dy);
+      const radius = 260;
+
+      if (distance >= radius) {
+        resetElement(element);
+        return;
+      }
+
+      const falloff = 1 - distance / radius;
+      const strength = 7 * falloff * falloff;
+      const safeDistance = distance || 1;
+
+      element.style.setProperty("--float-x", `${(dx / safeDistance) * strength}px`);
+      element.style.setProperty("--float-y", `${(dy / safeDistance) * strength}px`);
+      element.style.setProperty("--field-glow-alpha", `${0.14 * falloff}`);
+    });
+
+    pendingFrame = false;
+  };
+
+  const queuePointerFieldUpdate = () => {
+    if (pendingFrame) return;
+    pendingFrame = true;
+    window.requestAnimationFrame(updatePointerField);
+  };
+
+  window.addEventListener(
+    "pointermove",
+    (event) => {
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      document.body.classList.add("pointer-active");
+      queuePointerFieldUpdate();
+    },
+    { passive: true }
+  );
+
+  window.addEventListener("pointerleave", () => {
+    document.body.classList.remove("pointer-active");
+    reactiveElements.forEach(resetElement);
+  });
+};
+
 const renderProjects = (projects) => {
   const container = document.querySelector("#project-list");
   if (!container) return;
@@ -388,6 +478,7 @@ const renderSite = async () => {
     renderExperience(experience);
     renderCapabilities(capabilities);
     renderContact(profile);
+    setupPointerField();
   } catch (error) {
     renderFallback(error);
   }
