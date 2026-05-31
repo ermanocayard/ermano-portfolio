@@ -207,7 +207,6 @@ const setupPointerField = () => {
 
   if (!canUsePointerEffects || prefersReducedMotion) return;
 
-  const root = document.documentElement;
   const glow = createElement("div", "pointer-glow");
   const portrait = document.querySelector(".hero-photo");
   const magneticLinks = Array.from(document.querySelectorAll(".link-row .text-link, .contact-links .text-link"));
@@ -218,23 +217,22 @@ const setupPointerField = () => {
 
   let pointerX = window.innerWidth / 2;
   let pointerY = window.innerHeight / 2;
-  let pendingFrame = false;
-  let idleFrame = 0;
-  let idleX = pointerX;
-  let idleY = pointerY;
-  let idleVelocityX = 42;
-  let idleVelocityY = -28;
-  let idleLastTimestamp = 0;
+  let glowX = pointerX;
+  let glowY = pointerY;
+  let glowTargetX = pointerX;
+  let glowTargetY = pointerY;
+  let glowVelocityX = 42;
+  let glowVelocityY = -28;
+  let portraitX = 0;
+  let portraitY = 0;
   let lastPointerX = pointerX;
   let lastPointerY = pointerY;
   let lastPointerTimestamp = performance.now();
-  let pointerVelocityX = idleVelocityX;
-  let pointerVelocityY = idleVelocityY;
-
-  const resetPortrait = () => {
-    portrait?.style.setProperty("--portrait-react-x", "0px");
-    portrait?.style.setProperty("--portrait-react-y", "0px");
-  };
+  let pointerVelocityX = glowVelocityX;
+  let pointerVelocityY = glowVelocityY;
+  let lastMoveSignature = "";
+  let lastFrameTimestamp = 0;
+  let pointerActive = false;
 
   const resetMagneticLinks = () => {
     magneticLinks.forEach((link) => {
@@ -243,9 +241,21 @@ const setupPointerField = () => {
     });
   };
 
-  const updatePointerField = () => {
-    root.style.setProperty("--cursor-x", `${pointerX}px`);
-    root.style.setProperty("--cursor-y", `${pointerY}px`);
+  const updateGlowPosition = () => {
+    glow.style.setProperty("--glow-x", `${glowX}px`);
+    glow.style.setProperty("--glow-y", `${glowY}px`);
+  };
+
+  const setPortraitPosition = (x, y) => {
+    portraitX = x;
+    portraitY = y;
+    portrait?.style.setProperty("--portrait-x", `${portraitX}px`);
+    portrait?.style.setProperty("--portrait-y", `${portraitY}px`);
+  };
+
+  const getPortraitTarget = (timestamp) => {
+    let targetX = Math.sin(timestamp * 0.00052) * 1.1;
+    let targetY = Math.cos(timestamp * 0.00048) * 1.8;
 
     if (portrait?.isConnected) {
       const rect = portrait.getBoundingClientRect();
@@ -256,115 +266,119 @@ const setupPointerField = () => {
       const distance = Math.hypot(dx, dy);
       const radius = 280;
 
-      if (distance >= radius) {
-        resetPortrait();
-      } else {
+      if (pointerActive && distance < radius) {
         const falloff = 1 - distance / radius;
-        const strength = 7 * falloff * falloff;
+        targetX += Math.max(-3.2, Math.min(3.2, dx * 0.016 * falloff));
+        targetY += Math.max(-3.2, Math.min(3.2, dy * 0.016 * falloff));
+      }
+    }
+
+    return { x: targetX, y: targetY };
+  };
+
+  const animatePointerField = (timestamp) => {
+    if (!lastFrameTimestamp) {
+      lastFrameTimestamp = timestamp;
+    }
+
+    const deltaSeconds = Math.min(0.05, (timestamp - lastFrameTimestamp) / 1000);
+
+    if (pointerActive) {
+      const catchUp = 1 - Math.pow(0.0018, deltaSeconds);
+      glowX += (glowTargetX - glowX) * catchUp;
+      glowY += (glowTargetY - glowY) * catchUp;
+      glowVelocityX += ((glowTargetX - glowX) * 8 - glowVelocityX) * 0.06;
+      glowVelocityY += ((glowTargetY - glowY) * 8 - glowVelocityY) * 0.06;
+    } else {
+      const elapsed = timestamp / 1000;
+      const leftBound = -260;
+      const rightBound = window.innerWidth + 260;
+      const topBound = -260;
+      const bottomBound = window.innerHeight + 260;
+
+      glowVelocityX += (Math.sin(elapsed * 0.37) * 10 + Math.sin(elapsed * 0.13) * 5) * deltaSeconds;
+      glowVelocityY += (Math.cos(elapsed * 0.31) * 9 + Math.sin(elapsed * 0.19) * 4) * deltaSeconds;
+      glowVelocityX *= 0.998;
+      glowVelocityY *= 0.998;
+      glowVelocityX = Math.max(-150, Math.min(150, glowVelocityX));
+      glowVelocityY = Math.max(-130, Math.min(130, glowVelocityY));
+
+      glowX += glowVelocityX * deltaSeconds;
+      glowY += glowVelocityY * deltaSeconds;
+
+      if (glowX < leftBound || glowX > rightBound) {
+        glowVelocityX *= -0.82;
+        glowX = Math.max(leftBound, Math.min(rightBound, glowX));
+      }
+
+      if (glowY < topBound || glowY > bottomBound) {
+        glowVelocityY *= -0.82;
+        glowY = Math.max(topBound, Math.min(bottomBound, glowY));
+      }
+    }
+
+    updateGlowPosition();
+
+    const portraitTarget = getPortraitTarget(timestamp);
+    const portraitEase = 1 - Math.pow(0.004, deltaSeconds);
+    setPortraitPosition(
+      portraitX + (portraitTarget.x - portraitX) * portraitEase,
+      portraitY + (portraitTarget.y - portraitY) * portraitEase
+    );
+
+    if (!pointerActive) {
+      resetMagneticLinks();
+    } else {
+      magneticLinks.forEach((link) => {
+        if (!link.isConnected) return;
+
+        const rect = link.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = centerX - pointerX;
+        const dy = centerY - pointerY;
+        const distance = Math.hypot(dx, dy);
+        const radius = 150;
+
+        if (distance >= radius) {
+          link.style.setProperty("--button-react-x", "0px");
+          link.style.setProperty("--button-react-y", "0px");
+          return;
+        }
+
+        const falloff = 1 - distance / radius;
+        const strength = 3 * falloff * falloff;
         const safeDistance = distance || 1;
 
-        portrait.style.setProperty("--portrait-react-x", `${(dx / safeDistance) * strength}px`);
-        portrait.style.setProperty("--portrait-react-y", `${(dy / safeDistance) * strength}px`);
-      }
+        link.style.setProperty("--button-react-x", `${(dx / safeDistance) * strength}px`);
+        link.style.setProperty("--button-react-y", `${(dy / safeDistance) * strength}px`);
+      });
     }
 
-    magneticLinks.forEach((link) => {
-      if (!link.isConnected) return;
-
-      const rect = link.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const dx = centerX - pointerX;
-      const dy = centerY - pointerY;
-      const distance = Math.hypot(dx, dy);
-      const radius = 150;
-
-      if (distance >= radius) {
-        link.style.setProperty("--button-react-x", "0px");
-        link.style.setProperty("--button-react-y", "0px");
-        return;
-      }
-
-      const falloff = 1 - distance / radius;
-      const strength = 3 * falloff * falloff;
-      const safeDistance = distance || 1;
-
-      link.style.setProperty("--button-react-x", `${(dx / safeDistance) * strength}px`);
-      link.style.setProperty("--button-react-y", `${(dy / safeDistance) * strength}px`);
-    });
-
-    pendingFrame = false;
+    lastFrameTimestamp = timestamp;
+    window.requestAnimationFrame(animatePointerField);
   };
 
-  const queuePointerFieldUpdate = () => {
-    if (pendingFrame) return;
-    pendingFrame = true;
-    window.requestAnimationFrame(updatePointerField);
-  };
+  updateGlowPosition();
+  window.requestAnimationFrame(animatePointerField);
 
-  const stopIdleGlow = () => {
-    if (idleFrame) {
-      window.cancelAnimationFrame(idleFrame);
-      idleFrame = 0;
-    }
-    idleLastTimestamp = 0;
-  };
+  const seedIdleVelocity = () => {
+    glowVelocityX = Math.max(-150, Math.min(150, pointerVelocityX || glowVelocityX || 42));
+    glowVelocityY = Math.max(-130, Math.min(130, pointerVelocityY || glowVelocityY || -28));
 
-  const runIdleGlow = (timestamp) => {
-    if (!idleLastTimestamp) {
-      idleLastTimestamp = timestamp;
-    }
-
-    const elapsed = timestamp / 1000;
-    const deltaSeconds = Math.min(0.05, (timestamp - idleLastTimestamp) / 1000);
-    const leftBound = -220;
-    const rightBound = window.innerWidth + 220;
-    const topBound = -220;
-    const bottomBound = window.innerHeight + 220;
-
-    idleVelocityX += (Math.sin(elapsed * 0.37) * 9 + Math.sin(elapsed * 0.11) * 5) * deltaSeconds;
-    idleVelocityY += (Math.cos(elapsed * 0.29) * 8 + Math.sin(elapsed * 0.17) * 4) * deltaSeconds;
-    idleVelocityX *= 0.998;
-    idleVelocityY *= 0.998;
-    idleVelocityX = Math.max(-140, Math.min(140, idleVelocityX));
-    idleVelocityY = Math.max(-120, Math.min(120, idleVelocityY));
-
-    idleX += idleVelocityX * deltaSeconds;
-    idleY += idleVelocityY * deltaSeconds;
-
-    if (idleX < leftBound || idleX > rightBound) {
-      idleVelocityX *= -0.82;
-      idleX = Math.max(leftBound, Math.min(rightBound, idleX));
-    }
-
-    if (idleY < topBound || idleY > bottomBound) {
-      idleVelocityY *= -0.82;
-      idleY = Math.max(topBound, Math.min(bottomBound, idleY));
-    }
-
-    root.style.setProperty("--cursor-x", `${idleX}px`);
-    root.style.setProperty("--cursor-y", `${idleY}px`);
-    idleLastTimestamp = timestamp;
-    idleFrame = window.requestAnimationFrame(runIdleGlow);
-  };
-
-  const startIdleGlow = () => {
-    stopIdleGlow();
-    idleX = pointerX;
-    idleY = pointerY;
-    idleVelocityX = Math.max(-140, Math.min(140, pointerVelocityX || 42));
-    idleVelocityY = Math.max(-120, Math.min(120, pointerVelocityY || -28));
-
-    if (Math.hypot(idleVelocityX, idleVelocityY) < 24) {
+    if (Math.hypot(glowVelocityX, glowVelocityY) < 24) {
       const angle = ((pointerX * 0.013 + pointerY * 0.017) % (Math.PI * 2)) || 0.75;
-      idleVelocityX = Math.cos(angle) * 54;
-      idleVelocityY = Math.sin(angle) * 46;
+      glowVelocityX = Math.cos(angle) * 54;
+      glowVelocityY = Math.sin(angle) * 46;
     }
-
-    idleFrame = window.requestAnimationFrame(runIdleGlow);
   };
 
   const handlePointerMove = (event) => {
+    const signature = `${event.type}:${event.timeStamp}:${event.clientX}:${event.clientY}`;
+
+    if (signature === lastMoveSignature) return;
+    lastMoveSignature = signature;
+
     const timestamp = event.timeStamp || performance.now();
     const deltaMilliseconds = Math.max(16, timestamp - lastPointerTimestamp);
 
@@ -375,22 +389,27 @@ const setupPointerField = () => {
     lastPointerTimestamp = timestamp;
     pointerX = event.clientX;
     pointerY = event.clientY;
-    stopIdleGlow();
+    glowTargetX = pointerX;
+    glowTargetY = pointerY;
+    pointerActive = true;
     document.body.classList.add("pointer-active");
     document.body.classList.remove("pointer-idle");
-    queuePointerFieldUpdate();
   };
 
   const releasePointerField = () => {
+    if (!pointerActive) return;
+
+    pointerActive = false;
     document.body.classList.remove("pointer-active");
     document.body.classList.add("pointer-idle");
-    resetPortrait();
     resetMagneticLinks();
-    startIdleGlow();
+    seedIdleVelocity();
   };
 
   window.addEventListener("pointermove", handlePointerMove, { capture: true, passive: true });
   window.addEventListener("mousemove", handlePointerMove, { capture: true, passive: true });
+  document.addEventListener("pointermove", handlePointerMove, { capture: true, passive: true });
+  document.addEventListener("mousemove", handlePointerMove, { capture: true, passive: true });
 
   document.addEventListener("pointerout", (event) => {
     if (!event.relatedTarget) {
