@@ -116,6 +116,20 @@ const renderHero = (profile) => {
   container.append(copy, photo);
 };
 
+const setProjectCardExpanded = (card, expanded) => {
+  const toggle = card.querySelector(".project-toggle");
+  const detail = card.querySelector(".project-detail");
+  const cue = card.querySelector(".project-cue");
+
+  card.classList.toggle("is-expanded", expanded);
+  toggle?.setAttribute("aria-expanded", String(expanded));
+  detail?.setAttribute("aria-hidden", String(!expanded));
+
+  if (cue) {
+    cue.textContent = expanded ? "Collapse" : "Expand";
+  }
+};
+
 const renderProjects = (projects) => {
   const container = document.querySelector("#project-list");
   if (!container) return;
@@ -188,11 +202,17 @@ const renderProjects = (projects) => {
     detail.appendChild(detailInner);
 
     toggle.addEventListener("click", () => {
-      const isExpanded = toggle.getAttribute("aria-expanded") === "true";
-      toggle.setAttribute("aria-expanded", String(!isExpanded));
-      detail.setAttribute("aria-hidden", String(isExpanded));
-      cue.textContent = isExpanded ? "Expand" : "Collapse";
-      card.classList.toggle("is-expanded", !isExpanded);
+      const shouldExpand = toggle.getAttribute("aria-expanded") !== "true";
+
+      if (shouldExpand) {
+        container.querySelectorAll(".project-card.is-expanded").forEach((openCard) => {
+          if (openCard !== card) {
+            setProjectCardExpanded(openCard, false);
+          }
+        });
+      }
+
+      setProjectCardExpanded(card, shouldExpand);
     });
 
     card.append(toggle, detail);
