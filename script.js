@@ -121,13 +121,51 @@ const setProjectCardExpanded = (card, expanded) => {
   const detail = card.querySelector(".project-detail");
   const cue = card.querySelector(".expand-cue");
 
-  card.classList.toggle("is-expanded", expanded);
-  toggle?.setAttribute("aria-expanded", String(expanded));
-  detail?.setAttribute("aria-hidden", String(!expanded));
-
   if (cue) {
     cue.textContent = expanded ? "Collapse" : "Expand";
   }
+
+  if (!detail) {
+    card.classList.toggle("is-expanded", expanded);
+    toggle?.setAttribute("aria-expanded", String(expanded));
+    return;
+  }
+
+  detail.style.overflow = "hidden";
+
+  if (expanded) {
+    card.classList.add("is-expanded");
+    toggle?.setAttribute("aria-expanded", "true");
+    detail.setAttribute("aria-hidden", "false");
+    detail.style.height = "0px";
+
+    window.requestAnimationFrame(() => {
+      detail.style.height = `${detail.scrollHeight}px`;
+    });
+
+    const finishExpansion = (event) => {
+      if (event.propertyName !== "height") return;
+
+      detail.removeEventListener("transitionend", finishExpansion);
+
+      if (card.classList.contains("is-expanded")) {
+        detail.style.height = "auto";
+      }
+    };
+
+    detail.addEventListener("transitionend", finishExpansion);
+    return;
+  }
+
+  detail.style.height = `${detail.getBoundingClientRect().height}px`;
+  detail.getBoundingClientRect();
+  card.classList.remove("is-expanded");
+  toggle?.setAttribute("aria-expanded", "false");
+  detail.setAttribute("aria-hidden", "true");
+
+  window.requestAnimationFrame(() => {
+    detail.style.height = "0px";
+  });
 };
 
 const getProjectCardTop = (card) => card.getBoundingClientRect().top + window.scrollY;
@@ -172,6 +210,7 @@ const setupPointerField = () => {
   const root = document.documentElement;
   const glow = createElement("div", "pointer-glow");
   const portrait = document.querySelector(".hero-photo");
+  const magneticLinks = Array.from(document.querySelectorAll(".link-row .text-link, .contact-links .text-link"));
 
   glow.setAttribute("aria-hidden", "true");
   document.body.appendChild(glow);
@@ -182,12 +221,19 @@ const setupPointerField = () => {
   let pendingFrame = false;
   let idleFrame = 0;
   let idleStartedAt = 0;
-  let idleBaseX = pointerX;
-  let idleBaseY = pointerY;
+  let idleOriginX = pointerX;
+  let idleOriginY = pointerY;
 
   const resetPortrait = () => {
     portrait?.style.setProperty("--portrait-react-x", "0px");
     portrait?.style.setProperty("--portrait-react-y", "0px");
+  };
+
+  const resetMagneticLinks = () => {
+    magneticLinks.forEach((link) => {
+      link.style.setProperty("--button-react-x", "0px");
+      link.style.setProperty("--button-react-y", "0px");
+    });
   };
 
   const updatePointerField = () => {
@@ -215,6 +261,31 @@ const setupPointerField = () => {
       }
     }
 
+    magneticLinks.forEach((link) => {
+      if (!link.isConnected) return;
+
+      const rect = link.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const dx = centerX - pointerX;
+      const dy = centerY - pointerY;
+      const distance = Math.hypot(dx, dy);
+      const radius = 150;
+
+      if (distance >= radius) {
+        link.style.setProperty("--button-react-x", "0px");
+        link.style.setProperty("--button-react-y", "0px");
+        return;
+      }
+
+      const falloff = 1 - distance / radius;
+      const strength = 3 * falloff * falloff;
+      const safeDistance = distance || 1;
+
+      link.style.setProperty("--button-react-x", `${(dx / safeDistance) * strength}px`);
+      link.style.setProperty("--button-react-y", `${(dy / safeDistance) * strength}px`);
+    });
+
     pendingFrame = false;
   };
 
@@ -237,20 +308,40 @@ const setupPointerField = () => {
     }
 
     const elapsed = (timestamp - idleStartedAt) / 1000;
-    root.style.setProperty("--cursor-x", `${idleBaseX + Math.sin(elapsed * 0.42) * 18}px`);
-    root.style.setProperty("--cursor-y", `${idleBaseY + Math.cos(elapsed * 0.36) * 14}px`);
+    const wanderX =
+      window.innerWidth * 0.5 +
+      Math.sin(elapsed * 0.16) * window.innerWidth * 0.24 +
+      Math.sin(elapsed * 0.47) * 34;
+    const wanderY =
+      window.innerHeight * 0.44 +
+      Math.cos(elapsed * 0.18) * window.innerHeight * 0.22 +
+      Math.sin(elapsed * 0.31) * 26;
+    const release = Math.min(1, elapsed / 1.8);
+    const driftX = idleOriginX + (wanderX - idleOriginX) * release;
+    const driftY = idleOriginY + (wanderY - idleOriginY) * release;
+
+    root.style.setProperty("--cursor-x", `${driftX}px`);
+    root.style.setProperty("--cursor-y", `${driftY}px`);
     idleFrame = window.requestAnimationFrame(runIdleGlow);
   };
 
   const startIdleGlow = () => {
     stopIdleGlow();
     idleStartedAt = 0;
-    idleBaseX = pointerX;
-    idleBaseY = pointerY;
+    idleOriginX = pointerX;
+    idleOriginY = pointerY;
     idleFrame = window.requestAnimationFrame(runIdleGlow);
   };
 
-  window.addEventListener(
+  const releasePointerField = () => {
+    document.body.classList.remove("pointer-active");
+    document.body.classList.add("pointer-idle");
+    resetPortrait();
+    resetMagneticLinks();
+    startIdleGlow();
+  };
+
+  document.addEventListener(
     "pointermove",
     (event) => {
       pointerX = event.clientX;
@@ -260,13 +351,21 @@ const setupPointerField = () => {
       document.body.classList.remove("pointer-idle");
       queuePointerFieldUpdate();
     },
-    { passive: true }
+    { capture: true, passive: true }
   );
 
-  window.addEventListener("pointerleave", () => {
-    document.body.classList.add("pointer-idle");
-    resetPortrait();
-    startIdleGlow();
+  document.addEventListener("pointerout", (event) => {
+    if (!event.relatedTarget) {
+      releasePointerField();
+    }
+  });
+
+  document.addEventListener("mouseleave", releasePointerField);
+  window.addEventListener("blur", releasePointerField);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      releasePointerField();
+    }
   });
 };
 
