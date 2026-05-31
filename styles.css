@@ -98,6 +98,16 @@ a {
   color: inherit;
 }
 
+::selection {
+  color: var(--field);
+  background: rgba(185, 173, 156, 0.82);
+}
+
+::-moz-selection {
+  color: var(--field);
+  background: rgba(185, 173, 156, 0.82);
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
