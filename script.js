@@ -220,9 +220,16 @@ const setupPointerField = () => {
   let pointerY = window.innerHeight / 2;
   let pendingFrame = false;
   let idleFrame = 0;
-  let idleStartedAt = 0;
-  let idleOriginX = pointerX;
-  let idleOriginY = pointerY;
+  let idleX = pointerX;
+  let idleY = pointerY;
+  let idleVelocityX = 42;
+  let idleVelocityY = -28;
+  let idleLastTimestamp = 0;
+  let lastPointerX = pointerX;
+  let lastPointerY = pointerY;
+  let lastPointerTimestamp = performance.now();
+  let pointerVelocityX = idleVelocityX;
+  let pointerVelocityY = idleVelocityY;
 
   const resetPortrait = () => {
     portrait?.style.setProperty("--portrait-react-x", "0px");
@@ -300,37 +307,78 @@ const setupPointerField = () => {
       window.cancelAnimationFrame(idleFrame);
       idleFrame = 0;
     }
+    idleLastTimestamp = 0;
   };
 
   const runIdleGlow = (timestamp) => {
-    if (!idleStartedAt) {
-      idleStartedAt = timestamp;
+    if (!idleLastTimestamp) {
+      idleLastTimestamp = timestamp;
     }
 
-    const elapsed = (timestamp - idleStartedAt) / 1000;
-    const wanderX =
-      window.innerWidth * 0.5 +
-      Math.sin(elapsed * 0.16) * window.innerWidth * 0.24 +
-      Math.sin(elapsed * 0.47) * 34;
-    const wanderY =
-      window.innerHeight * 0.44 +
-      Math.cos(elapsed * 0.18) * window.innerHeight * 0.22 +
-      Math.sin(elapsed * 0.31) * 26;
-    const release = Math.min(1, elapsed / 1.8);
-    const driftX = idleOriginX + (wanderX - idleOriginX) * release;
-    const driftY = idleOriginY + (wanderY - idleOriginY) * release;
+    const elapsed = timestamp / 1000;
+    const deltaSeconds = Math.min(0.05, (timestamp - idleLastTimestamp) / 1000);
+    const leftBound = -220;
+    const rightBound = window.innerWidth + 220;
+    const topBound = -220;
+    const bottomBound = window.innerHeight + 220;
 
-    root.style.setProperty("--cursor-x", `${driftX}px`);
-    root.style.setProperty("--cursor-y", `${driftY}px`);
+    idleVelocityX += (Math.sin(elapsed * 0.37) * 9 + Math.sin(elapsed * 0.11) * 5) * deltaSeconds;
+    idleVelocityY += (Math.cos(elapsed * 0.29) * 8 + Math.sin(elapsed * 0.17) * 4) * deltaSeconds;
+    idleVelocityX *= 0.998;
+    idleVelocityY *= 0.998;
+    idleVelocityX = Math.max(-140, Math.min(140, idleVelocityX));
+    idleVelocityY = Math.max(-120, Math.min(120, idleVelocityY));
+
+    idleX += idleVelocityX * deltaSeconds;
+    idleY += idleVelocityY * deltaSeconds;
+
+    if (idleX < leftBound || idleX > rightBound) {
+      idleVelocityX *= -0.82;
+      idleX = Math.max(leftBound, Math.min(rightBound, idleX));
+    }
+
+    if (idleY < topBound || idleY > bottomBound) {
+      idleVelocityY *= -0.82;
+      idleY = Math.max(topBound, Math.min(bottomBound, idleY));
+    }
+
+    root.style.setProperty("--cursor-x", `${idleX}px`);
+    root.style.setProperty("--cursor-y", `${idleY}px`);
+    idleLastTimestamp = timestamp;
     idleFrame = window.requestAnimationFrame(runIdleGlow);
   };
 
   const startIdleGlow = () => {
     stopIdleGlow();
-    idleStartedAt = 0;
-    idleOriginX = pointerX;
-    idleOriginY = pointerY;
+    idleX = pointerX;
+    idleY = pointerY;
+    idleVelocityX = Math.max(-140, Math.min(140, pointerVelocityX || 42));
+    idleVelocityY = Math.max(-120, Math.min(120, pointerVelocityY || -28));
+
+    if (Math.hypot(idleVelocityX, idleVelocityY) < 24) {
+      const angle = ((pointerX * 0.013 + pointerY * 0.017) % (Math.PI * 2)) || 0.75;
+      idleVelocityX = Math.cos(angle) * 54;
+      idleVelocityY = Math.sin(angle) * 46;
+    }
+
     idleFrame = window.requestAnimationFrame(runIdleGlow);
+  };
+
+  const handlePointerMove = (event) => {
+    const timestamp = event.timeStamp || performance.now();
+    const deltaMilliseconds = Math.max(16, timestamp - lastPointerTimestamp);
+
+    pointerVelocityX = ((event.clientX - lastPointerX) / deltaMilliseconds) * 1000;
+    pointerVelocityY = ((event.clientY - lastPointerY) / deltaMilliseconds) * 1000;
+    lastPointerX = event.clientX;
+    lastPointerY = event.clientY;
+    lastPointerTimestamp = timestamp;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    stopIdleGlow();
+    document.body.classList.add("pointer-active");
+    document.body.classList.remove("pointer-idle");
+    queuePointerFieldUpdate();
   };
 
   const releasePointerField = () => {
@@ -341,18 +389,8 @@ const setupPointerField = () => {
     startIdleGlow();
   };
 
-  document.addEventListener(
-    "pointermove",
-    (event) => {
-      pointerX = event.clientX;
-      pointerY = event.clientY;
-      stopIdleGlow();
-      document.body.classList.add("pointer-active");
-      document.body.classList.remove("pointer-idle");
-      queuePointerFieldUpdate();
-    },
-    { capture: true, passive: true }
-  );
+  window.addEventListener("pointermove", handlePointerMove, { capture: true, passive: true });
+  window.addEventListener("mousemove", handlePointerMove, { capture: true, passive: true });
 
   document.addEventListener("pointerout", (event) => {
     if (!event.relatedTarget) {

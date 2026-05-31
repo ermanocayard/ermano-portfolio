@@ -338,6 +338,10 @@ p {
   border-radius: 50%;
   box-shadow: 0 24px 80px var(--shadow);
   justify-self: end;
+  transform: translate3d(var(--portrait-react-x), var(--portrait-react-y), 0);
+  animation: portrait-drift 9s ease-in-out infinite;
+  transition: transform 260ms ease-out;
+  will-change: transform;
 }
 
 .hero-photo img,
@@ -351,10 +355,6 @@ p {
   border: 0;
   border-radius: 50%;
   box-shadow: none;
-  transform: translate3d(var(--portrait-react-x), var(--portrait-react-y), 0) scale(1.035);
-  animation: portrait-drift 9s ease-in-out infinite;
-  transition: transform 260ms ease-out;
-  will-change: transform;
 }
 
 .hero-photo-fallback {
@@ -807,17 +807,15 @@ p {
 @keyframes portrait-drift {
   0%,
   100% {
-    transform: translate3d(var(--portrait-react-x), var(--portrait-react-y), 0) scale(1.035);
+    transform: translate3d(var(--portrait-react-x), var(--portrait-react-y), 0);
   }
 
   48% {
-    transform: translate3d(calc(var(--portrait-react-x) + 1px), calc(var(--portrait-react-y) - 3px), 0)
-      scale(1.035);
+    transform: translate3d(calc(var(--portrait-react-x) + 1px), calc(var(--portrait-react-y) - 3px), 0);
   }
 
   76% {
-    transform: translate3d(calc(var(--portrait-react-x) - 1px), calc(var(--portrait-react-y) + 2px), 0)
-      scale(1.035);
+    transform: translate3d(calc(var(--portrait-react-x) - 1px), calc(var(--portrait-react-y) + 2px), 0);
   }
 }
 
@@ -893,8 +891,7 @@ p {
     display: none;
   }
 
-  .hero-photo img,
-  .hero-photo-fallback,
+  .hero-photo,
   .text-link {
     transform: none;
     animation: none;
@@ -914,8 +911,7 @@ p {
     display: none;
   }
 
-  .hero-photo img,
-  .hero-photo-fallback,
+  .hero-photo,
   .text-link {
     transform: none;
     animation: none;
