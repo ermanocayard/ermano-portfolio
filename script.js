@@ -119,7 +119,7 @@ const renderHero = (profile) => {
 const setProjectCardExpanded = (card, expanded) => {
   const toggle = card.querySelector(".project-toggle");
   const detail = card.querySelector(".project-detail");
-  const cue = card.querySelector(".project-cue");
+  const cue = card.querySelector(".expand-cue");
 
   card.classList.toggle("is-expanded", expanded);
   toggle?.setAttribute("aria-expanded", String(expanded));
@@ -130,6 +130,17 @@ const setProjectCardExpanded = (card, expanded) => {
   }
 };
 
+const scrollProjectCardIntoView = (card) => {
+  const headerHeight = document.querySelector(".site-header")?.getBoundingClientRect().height || 0;
+  const cardTop = card.getBoundingClientRect().top + window.scrollY;
+  const offset = headerHeight + 24;
+
+  window.scrollTo({
+    top: Math.max(0, cardTop - offset),
+    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+  });
+};
+
 const renderProjects = (projects) => {
   const container = document.querySelector("#project-list");
   if (!container) return;
@@ -137,6 +148,7 @@ const renderProjects = (projects) => {
   container.replaceChildren();
 
   const orderedProjects = [...projects].sort((a, b) => Number(b.featured) - Number(a.featured));
+  let pendingScrollId = 0;
 
   orderedProjects.forEach((project) => {
     const detailId = `project-detail-${project.id}`;
@@ -203,6 +215,8 @@ const renderProjects = (projects) => {
 
     toggle.addEventListener("click", () => {
       const shouldExpand = toggle.getAttribute("aria-expanded") !== "true";
+      pendingScrollId += 1;
+      const scrollId = pendingScrollId;
 
       if (shouldExpand) {
         container.querySelectorAll(".project-card.is-expanded").forEach((openCard) => {
@@ -213,6 +227,14 @@ const renderProjects = (projects) => {
       }
 
       setProjectCardExpanded(card, shouldExpand);
+
+      if (shouldExpand) {
+        window.setTimeout(() => {
+          if (scrollId === pendingScrollId && card.classList.contains("is-expanded")) {
+            scrollProjectCardIntoView(card);
+          }
+        }, 560);
+      }
     });
 
     card.append(toggle, detail);
