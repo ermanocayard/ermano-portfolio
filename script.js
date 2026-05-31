@@ -154,6 +154,15 @@ const scrollProjectCardIntoView = (card, top = getProjectCardTop(card)) => {
   });
 };
 
+const setTimelineItemExpanded = (item, expanded) => {
+  const toggle = item.querySelector(".timeline-toggle");
+  const detail = item.querySelector(".timeline-detail");
+
+  item.classList.toggle("is-expanded", expanded);
+  toggle?.setAttribute("aria-expanded", String(expanded));
+  detail?.setAttribute("aria-hidden", String(!expanded));
+};
+
 const setupPointerField = () => {
   const canUsePointerEffects = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -366,40 +375,18 @@ const renderExperience = (roles) => {
     role.lines.forEach((line) => appendText(lines, "p", null, line));
     detail.appendChild(lines);
 
-    let pinnedOpen = false;
-
-    const setExpanded = (expanded) => {
-      item.classList.toggle("is-expanded", expanded);
-      toggle.setAttribute("aria-expanded", String(expanded));
-      detail.setAttribute("aria-hidden", String(!expanded));
-    };
-
     toggle.addEventListener("click", () => {
-      pinnedOpen = !pinnedOpen;
-      setExpanded(pinnedOpen);
-    });
+      const shouldExpand = toggle.getAttribute("aria-expanded") !== "true";
 
-    item.addEventListener("mouseenter", () => {
-      if (!pinnedOpen) {
-        setExpanded(true);
+      if (shouldExpand) {
+        container.querySelectorAll(".timeline-item.is-expanded").forEach((openItem) => {
+          if (openItem !== item) {
+            setTimelineItemExpanded(openItem, false);
+          }
+        });
       }
-    });
-    item.addEventListener("mouseleave", () => {
-      if (!pinnedOpen && !item.matches(":focus-within")) {
-        setExpanded(false);
-      }
-    });
-    item.addEventListener("focusin", () => {
-      if (!pinnedOpen) {
-        setExpanded(true);
-      }
-    });
-    item.addEventListener("focusout", () => {
-      window.setTimeout(() => {
-        if (!pinnedOpen && !item.matches(":hover, :focus-within")) {
-          setExpanded(false);
-        }
-      }, 0);
+
+      setTimelineItemExpanded(item, shouldExpand);
     });
 
     item.append(marker, toggle, detail);
