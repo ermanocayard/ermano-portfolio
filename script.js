@@ -171,61 +171,49 @@ const setupPointerField = () => {
 
   const root = document.documentElement;
   const glow = createElement("div", "pointer-glow");
+  const portrait = document.querySelector(".hero-photo");
+
   glow.setAttribute("aria-hidden", "true");
   document.body.appendChild(glow);
   document.body.classList.add("pointer-field-enabled");
 
-  const reactiveElements = Array.from(
-    document.querySelectorAll(
-      ".hero-photo, .project-card, .tool-item, .timeline-item, .link-row .text-link, .contact-links .text-link"
-    )
-  );
-
-  reactiveElements.forEach((element) => element.classList.add("motion-reactive"));
-
   let pointerX = window.innerWidth / 2;
   let pointerY = window.innerHeight / 2;
   let pendingFrame = false;
+  let idleFrame = 0;
+  let idleStartedAt = 0;
+  let idleBaseX = pointerX;
+  let idleBaseY = pointerY;
 
-  const resetElement = (element) => {
-    element.style.setProperty("--float-x", "0px");
-    element.style.setProperty("--float-y", "0px");
-    element.style.setProperty("--field-glow-alpha", "0");
+  const resetPortrait = () => {
+    portrait?.style.setProperty("--portrait-react-x", "0px");
+    portrait?.style.setProperty("--portrait-react-y", "0px");
   };
 
   const updatePointerField = () => {
     root.style.setProperty("--cursor-x", `${pointerX}px`);
     root.style.setProperty("--cursor-y", `${pointerY}px`);
-    root.style.setProperty("--field-drift-x", `${((pointerX / window.innerWidth) - 0.5) * -9}px`);
-    root.style.setProperty("--field-drift-y", `${((pointerY / window.innerHeight) - 0.5) * -7}px`);
 
-    reactiveElements.forEach((element) => {
-      if (!element.isConnected || element.classList.contains("is-expanded")) {
-        resetElement(element);
-        return;
-      }
-
-      const rect = element.getBoundingClientRect();
+    if (portrait?.isConnected) {
+      const rect = portrait.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
       const dx = centerX - pointerX;
       const dy = centerY - pointerY;
       const distance = Math.hypot(dx, dy);
-      const radius = 260;
+      const radius = 280;
 
       if (distance >= radius) {
-        resetElement(element);
-        return;
+        resetPortrait();
+      } else {
+        const falloff = 1 - distance / radius;
+        const strength = 7 * falloff * falloff;
+        const safeDistance = distance || 1;
+
+        portrait.style.setProperty("--portrait-react-x", `${(dx / safeDistance) * strength}px`);
+        portrait.style.setProperty("--portrait-react-y", `${(dy / safeDistance) * strength}px`);
       }
-
-      const falloff = 1 - distance / radius;
-      const strength = 7 * falloff * falloff;
-      const safeDistance = distance || 1;
-
-      element.style.setProperty("--float-x", `${(dx / safeDistance) * strength}px`);
-      element.style.setProperty("--float-y", `${(dy / safeDistance) * strength}px`);
-      element.style.setProperty("--field-glow-alpha", `${0.14 * falloff}`);
-    });
+    }
 
     pendingFrame = false;
   };
@@ -236,20 +224,49 @@ const setupPointerField = () => {
     window.requestAnimationFrame(updatePointerField);
   };
 
+  const stopIdleGlow = () => {
+    if (idleFrame) {
+      window.cancelAnimationFrame(idleFrame);
+      idleFrame = 0;
+    }
+  };
+
+  const runIdleGlow = (timestamp) => {
+    if (!idleStartedAt) {
+      idleStartedAt = timestamp;
+    }
+
+    const elapsed = (timestamp - idleStartedAt) / 1000;
+    root.style.setProperty("--cursor-x", `${idleBaseX + Math.sin(elapsed * 0.42) * 18}px`);
+    root.style.setProperty("--cursor-y", `${idleBaseY + Math.cos(elapsed * 0.36) * 14}px`);
+    idleFrame = window.requestAnimationFrame(runIdleGlow);
+  };
+
+  const startIdleGlow = () => {
+    stopIdleGlow();
+    idleStartedAt = 0;
+    idleBaseX = pointerX;
+    idleBaseY = pointerY;
+    idleFrame = window.requestAnimationFrame(runIdleGlow);
+  };
+
   window.addEventListener(
     "pointermove",
     (event) => {
       pointerX = event.clientX;
       pointerY = event.clientY;
+      stopIdleGlow();
       document.body.classList.add("pointer-active");
+      document.body.classList.remove("pointer-idle");
       queuePointerFieldUpdate();
     },
     { passive: true }
   );
 
   window.addEventListener("pointerleave", () => {
-    document.body.classList.remove("pointer-active");
-    reactiveElements.forEach(resetElement);
+    document.body.classList.add("pointer-idle");
+    resetPortrait();
+    startIdleGlow();
   });
 };
 

@@ -18,8 +18,6 @@
   --radius: 8px;
   --cursor-x: 50vw;
   --cursor-y: 50vh;
-  --field-drift-x: 0px;
-  --field-drift-y: 0px;
 }
 
 * {
@@ -27,12 +25,12 @@
 }
 
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
   min-height: 100vh;
   margin: 0;
   color: var(--text);
@@ -63,12 +61,6 @@ body::before {
   opacity: 0.022;
 }
 
-body.pointer-field-enabled::before {
-  transform: translate3d(var(--field-drift-x), var(--field-drift-y), 0);
-  transition: transform 160ms ease-out;
-  will-change: transform;
-}
-
 body::after {
   position: fixed;
   inset: 0;
@@ -82,6 +74,7 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: 12;
+  overflow: clip;
   pointer-events: none;
   opacity: 0;
   background:
@@ -89,10 +82,15 @@ body::after {
     radial-gradient(circle 620px at var(--cursor-x) var(--cursor-y), rgba(242, 238, 230, 0.035), transparent 70%);
   mix-blend-mode: screen;
   transition: opacity 220ms ease;
+  will-change: background, opacity;
 }
 
 body.pointer-active .pointer-glow {
   opacity: 1;
+}
+
+body.pointer-idle .pointer-glow {
+  opacity: 0.64;
 }
 
 a {
@@ -330,9 +328,15 @@ p {
 }
 
 .hero-photo {
+  --portrait-react-x: 0px;
+  --portrait-react-y: 0px;
   width: min(100%, 300px);
+  aspect-ratio: 1;
   margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
   border-radius: 50%;
+  box-shadow: 0 24px 80px var(--shadow);
   justify-self: end;
 }
 
@@ -340,12 +344,17 @@ p {
 .hero-photo-fallback {
   display: block;
   width: 100%;
+  height: 100%;
   aspect-ratio: 1;
   object-fit: cover;
   object-position: center;
-  border: 1px solid var(--line-strong);
+  border: 0;
   border-radius: 50%;
-  box-shadow: 0 24px 80px var(--shadow);
+  box-shadow: none;
+  transform: translate3d(var(--portrait-react-x), var(--portrait-react-y), 0) scale(1.035);
+  animation: portrait-drift 9s ease-in-out infinite;
+  transition: transform 260ms ease-out;
+  will-change: transform;
 }
 
 .hero-photo-fallback {
@@ -411,46 +420,6 @@ p {
   border-color: var(--text);
 }
 
-.motion-reactive {
-  --float-x: 0px;
-  --float-y: 0px;
-  --field-glow-alpha: 0;
-  transform: translate3d(var(--float-x), var(--float-y), 0);
-  transition:
-    transform 180ms ease-out,
-    border-color 220ms ease,
-    box-shadow 220ms ease,
-    background-color 220ms ease,
-    color 220ms ease;
-  will-change: transform;
-}
-
-.project-card.motion-reactive {
-  box-shadow:
-    0 24px 80px var(--shadow),
-    0 0 44px rgba(185, 173, 156, var(--field-glow-alpha));
-}
-
-.project-card.is-expanded.motion-reactive {
-  transform: translate3d(0, 0, 0);
-}
-
-.hero-photo.motion-reactive img,
-.hero-photo.motion-reactive .hero-photo-fallback {
-  box-shadow:
-    0 24px 80px var(--shadow),
-    0 0 54px rgba(185, 173, 156, var(--field-glow-alpha));
-}
-
-.tool-item.motion-reactive,
-.timeline-item.motion-reactive {
-  border-color: rgba(185, 173, 156, calc(0.12 + var(--field-glow-alpha)));
-}
-
-.text-link.motion-reactive {
-  box-shadow: 0 0 28px rgba(185, 173, 156, calc(var(--field-glow-alpha) * 0.75));
-}
-
 .project-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -469,6 +438,18 @@ p {
 
 .project-card.is-expanded {
   border-color: rgba(185, 173, 156, 0.38);
+}
+
+.project-card:hover,
+.tool-item:hover,
+.timeline-item:hover {
+  border-color: rgba(185, 173, 156, 0.28);
+}
+
+.project-card:hover {
+  box-shadow:
+    0 24px 80px var(--shadow),
+    0 0 42px rgba(185, 173, 156, 0.045);
 }
 
 .project-toggle {
@@ -813,6 +794,23 @@ p {
   }
 }
 
+@keyframes portrait-drift {
+  0%,
+  100% {
+    transform: translate3d(var(--portrait-react-x), var(--portrait-react-y), 0) scale(1.035);
+  }
+
+  48% {
+    transform: translate3d(calc(var(--portrait-react-x) + 1px), calc(var(--portrait-react-y) - 3px), 0)
+      scale(1.035);
+  }
+
+  76% {
+    transform: translate3d(calc(var(--portrait-react-x) - 1px), calc(var(--portrait-react-y) + 2px), 0)
+      scale(1.035);
+  }
+}
+
 @media (max-width: 860px) {
   .nav-toggle {
     display: block;
@@ -885,8 +883,10 @@ p {
     display: none;
   }
 
-  .motion-reactive {
-    transform: none !important;
+  .hero-photo img,
+  .hero-photo-fallback {
+    transform: none;
+    animation: none;
   }
 }
 
@@ -903,8 +903,10 @@ p {
     display: none;
   }
 
-  .motion-reactive {
-    transform: none !important;
+  .hero-photo img,
+  .hero-photo-fallback {
+    transform: none;
+    animation: none;
   }
 
   *,
